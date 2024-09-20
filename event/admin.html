@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Admin Panel</title>
+        <style>
+            /* General Styles */
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: "Arial", sans-serif;
+                background-color: #f7f8fa;
+                color: #333;
+            }
+
+            .container {
+                max-width: 800px;
+                margin: 50px auto;
+                background-color: #fff;
+                border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                padding: 30px;
+            }
+
+            h1 {
+                text-align: center;
+                font-size: 28px;
+                color: #333;
+                margin-bottom: 20px;
+            }
+
+            /* Form Section */
+            .form-section {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 30px;
+            }
+
+            .form-section input {
+                flex: 1;
+                padding: 12px;
+                font-size: 16px;
+                border: 2px solid #ddd;
+                border-radius: 5px;
+                margin-right: 10px;
+                transition: border 0.3s ease;
+            }
+
+            .form-section input:focus {
+                border-color: #007bff;
+                outline: none;
+            }
+
+            .form-section button {
+                padding: 12px 20px;
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s ease;
+                font-size: 16px;
+            }
+
+            .form-section button:hover {
+                background-color: #0056b3;
+            }
+
+            /* Event List */
+            h2 {
+                margin-bottom: 15px;
+                font-size: 22px;
+                color: #444;
+            }
+
+            ul {
+                list-style-type: none;
+                padding: 0;
+            }
+
+            li {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                align-items: flex-start;
+                padding: 15px;
+                margin-bottom: 10px;
+                background-color: #f4f4f4;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                transition: background-color 0.3s ease;
+            }
+
+            li:hover {
+                background-color: #f0f0f0;
+            }
+
+            .event-name {
+                font-size: 18px;
+                color: #333;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+
+            .delete-btn {
+                background-color: #dc3545;
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: background-color 0.3s ease;
+            }
+
+            .delete-btn:hover {
+                background-color: #c82333;
+            }
+
+            .event-urls {
+                margin-top: 5px;
+                font-size: 14px;
+            }
+
+            .event-urls a {
+                text-decoration: none;
+                color: #007bff;
+                margin-right: 10px;
+            }
+
+            .event-urls a:hover {
+                text-decoration: underline;
+            }
+
+            .event-actions {
+                display: flex;
+                justify-content: space-between;
+                width: 100%;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Admin Panel - Manage Events</h1>
+
+            <!-- Create Event Section -->
+            <div class="form-section">
+                <input
+                    type="text"
+                    id="event-name-input"
+                    placeholder="Enter event name"
+                />
+                <button id="add-event-btn">Create Event</button>
+            </div>
+
+            <!-- Event List Section -->
+            <h2>Existing Events</h2>
+            <ul id="event-list">
+                <!-- Event items will be dynamically inserted here -->
+            </ul>
+        </div>
+
+        <script>
+            // Array to store events (in place of a real database)
+            let events = [];
+
+            // Get elements
+            const eventNameInput = document.getElementById("event-name-input");
+            const addEventBtn = document.getElementById("add-event-btn");
+            const eventList = document.getElementById("event-list");
+
+            // Add Event button click handler
+            addEventBtn.addEventListener("click", function () {
+                const eventName = eventNameInput.value.trim();
+
+                if (eventName) {
+                    events.push(eventName); // Add event to the array
+                    eventNameInput.value = ""; // Clear input
+                    renderEventList(); // Re-render the event list
+                } else {
+                    alert("Please enter a valid event name.");
+                }
+            });
+
+            // Render the event list
+            function renderEventList() {
+                eventList.innerHTML = ""; // Clear the existing list
+
+                events.forEach((event, index) => {
+                    const li = document.createElement("li");
+
+                    const eventInfoDiv = document.createElement("div");
+                    eventInfoDiv.className = "event-actions";
+
+                    const span = document.createElement("span");
+                    span.className = "event-name";
+                    span.innerText = event;
+
+                    const deleteBtn = document.createElement("button");
+                    deleteBtn.className = "delete-btn";
+                    deleteBtn.innerText = "Delete";
+                    deleteBtn.addEventListener("click", function () {
+                        deleteEvent(index);
+                    });
+
+                    eventInfoDiv.appendChild(span);
+                    eventInfoDiv.appendChild(deleteBtn);
+                    li.appendChild(eventInfoDiv);
+
+                    // Add event URLs for host and audience
+                    const eventUrlsDiv = document.createElement("div");
+                    eventUrlsDiv.className = "event-urls";
+
+                    const hostUrl = `/event/host.html?event=${encodeURIComponent(event)}`;
+                    const audienceUrl = `/event/audience.html?event=${encodeURIComponent(event)}`;
+
+                    const hostLink = document.createElement("a");
+                    hostLink.href = hostUrl;
+                    hostLink.innerText = "Host URL";
+
+                    const audienceLink = document.createElement("a");
+                    audienceLink.href = audienceUrl;
+                    audienceLink.innerText = "Audience URL";
+
+                    eventUrlsDiv.appendChild(hostLink);
+                    eventUrlsDiv.appendChild(audienceLink);
+                    li.appendChild(eventUrlsDiv);
+
+                    eventList.appendChild(li);
+                });
+            }
+
+            // Delete an event by index
+            function deleteEvent(index) {
+                events.splice(index, 1); // Remove the event from the array
+                renderEventList(); // Re-render the event list
+            }
+
+            // Initial render
+            renderEventList();
+        </script>
+    </body>
+</html>

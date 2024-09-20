@@ -1,0 +1,377 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Livestream - Host View</title>
+        <style>
+            /* --- Global Styles --- */
+            body {
+                margin: 0;
+                font-family: "Helvetica Neue", Arial, sans-serif;
+                background-color: #1a1a1a;
+                color: #fff;
+                overflow: hidden; /* Prevents body scroll */
+            }
+            #container {
+                display: flex;
+                height: 100vh;
+                overflow: hidden;
+            }
+            /* --- Video Stream --- */
+            #video-stream {
+                flex: 3;
+                background-color: #000;
+                position: relative;
+                overflow: hidden;
+            }
+            #video-stream video {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+            /* --- Stream Controls --- */
+            #controls {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                right: 120px; /* Give space for the chat button */
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                width: calc(100% - 160px); /* Adjust width between buttons */
+            }
+
+            #event-name {
+                flex-grow: 1;
+                text-align: center;
+                padding: 10px 0;
+                background-color: rgba(
+                    0,
+                    0,
+                    0,
+                    0.4
+                ); /* Semi-transparent background */
+                color: #fff;
+                font-size: 12px;
+                border-radius: 5px;
+                margin: 0 10px;
+            }
+            #event-name span {
+                font-weight: bold;
+            }
+            #controls button {
+                float: left;
+                padding: 10px 20px;
+                margin-right: 10px;
+                cursor: pointer;
+                background-color: #444;
+                border: none;
+                border-radius: 5px;
+                color: #fff;
+                transition: background-color 0.2s;
+            }
+
+            #controls button:hover {
+                background-color: #555;
+            }
+            #toggle-chat-btn {
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                z-index: 10;
+                padding: 10px 15px;
+                cursor: pointer;
+                background-color: #444;
+                border: none;
+                border-radius: 5px;
+                color: #fff;
+                transition: background-color 0.2s;
+            }
+            #toggle-chat-btn:hover {
+                background-color: #555;
+            }
+            /* --- Reaction Display --- */
+            #reaction-display {
+                position: absolute;
+                bottom: 20px;
+                left: 20px;
+                display: flex;
+                align-items: center;
+                background-color: rgba(0, 0, 0, 0.6);
+                padding: 10px;
+                border-radius: 8px;
+                z-index: 10; /* Bring reactions above the video */
+            }
+            .reaction-count {
+                margin-right: 20px;
+                font-size: 20px;
+                display: flex;
+                align-items: center;
+            }
+            .reaction-count .count {
+                margin-left: 5px;
+                font-size: 24px;
+            }
+            /* --- Chat Panel --- */
+            #chat {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                border-left: 1px solid #333;
+                background-color: #2a2a2a;
+                overflow: hidden;
+                transition: width 0.3s ease;
+            }
+            #chat.hidden {
+                display: none;
+            }
+            #chat-messages {
+                flex: 1 1 auto;
+                overflow-y: auto;
+                padding: 10px;
+            }
+            #chat-input {
+                display: flex;
+                align-items: center;
+                padding: 10px;
+                border-top: 1px solid #333;
+                background-color: #2a2a2a;
+            }
+            #chat-input input {
+                width: 100%;
+                padding: 12px 15px;
+                border: none;
+                border-radius: 25px;
+                background-color: #444;
+                color: #fff;
+                font-size: 14px;
+                transition: background-color 0.3s ease;
+            }
+            #chat-input input:focus {
+                outline: none;
+                background-color: #555;
+            }
+            /* --- Reaction Animations --- */
+            .reaction-float {
+                position: absolute;
+                font-size: 48px;
+                animation: floatUp 2s ease-out forwards;
+                pointer-events: none; /* Allows clicks to pass through */
+                z-index: 11; /* Ensure floating reactions are above video */
+            }
+            @keyframes floatUp {
+                0% {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                100% {
+                    opacity: 0;
+                    font-size: 100px;
+                    transform: translateY(-200px);
+                }
+            }
+            /* --- Scrollbar Styling --- */
+            ::-webkit-scrollbar {
+                width: 8px;
+                background-color: #2a2a2a;
+            }
+            ::-webkit-scrollbar-thumb {
+                background-color: #444;
+                border-radius: 4px;
+            }
+            /* Ensure the chat messages have white text */
+            #chat-messages {
+                color: #fff;
+            }
+            #start-btn {
+                display: none;
+            }
+            #stop-btn {
+                display: none;
+            }
+        </style>
+        <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
+    </head>
+    <body>
+        <div id="container">
+            <div id="video-stream">
+                <!-- Host's video stream -->
+                <div id="controls">
+                    <button id="start-btn">Start Stream</button>
+                    <button id="stop-btn">Stop Stream</button>
+                    <div id="event-name">Event name: <span></span></div>
+                </div>
+
+                <button id="toggle-chat-btn">Hide Chat</button>
+                <div id="reaction-display">
+                    <div class="reaction-count" data-reaction="👍">
+                        👍 <span class="count">0</span>
+                    </div>
+                    <div class="reaction-count" data-reaction="❤️">
+                        ❤️ <span class="count">0</span>
+                    </div>
+                    <div class="reaction-count" data-reaction="😂">
+                        😂 <span class="count">0</span>
+                    </div>
+                    <div class="reaction-count" data-reaction="👏">
+                        👏 <span class="count">0</span>
+                    </div>
+                    <div class="reaction-count" data-reaction="👎">
+                        👎 <span class="count">0</span>
+                    </div>
+                </div>
+            </div>
+            <div id="chat">
+                <div id="chat-messages">
+                    <!-- Chat messages -->
+                </div>
+                <div id="chat-input">
+                    <input type="text" placeholder="Type a message..." />
+                </div>
+            </div>
+        </div>
+        <script>
+            // Set Event name
+            const event = getParameterByName("event") || "demo-event";
+            document.querySelector("#event-name span").innerText = event;
+
+            // Initialize AgoraRTC SDK
+            const client = AgoraRTC.createClient({
+                mode: "live",
+                codec: "vp8",
+            });
+
+            // Create local tracks
+            const localTracks = {
+                videoTrack: null,
+                audioTrack: null,
+            };
+
+            // Create a local video track
+            AgoraRTC.createCameraVideoTrack()
+                .then((videoTrack) => {
+                    localTracks.videoTrack = videoTrack;
+                    videoTrack.play("video-stream");
+                    AgoraRTC.createMicrophoneAudioTrack()
+                        .then((audioTrack) => {
+                            localTracks.audioTrack = audioTrack;
+                            // Enable join button
+                            document.getElementById("start-btn").style.display =
+                                "block";
+                        })
+                        .catch((error) => {
+                            console.error("Error creating audio track:", error);
+                        });
+                })
+                .catch((error) => {
+                    console.error("Error creating video track:", error);
+                });
+
+            // Stream control buttons
+            const startBtn = document.getElementById("start-btn");
+            const stopBtn = document.getElementById("stop-btn");
+
+            startBtn.addEventListener("click", async () => {
+                // Start streaming logic here
+                console.log("Stream started");
+
+                // Join the channel
+                await client.join(
+                    "f4542081c3d140f9a55a84e82560ff3e",
+                    getParameterByName("event") || "demo-channel",
+                    null,
+                );
+                // Hide start button and show stop button
+                startBtn.style.display = "none";
+                stopBtn.style.display = "block";
+
+                // Set role as host
+                await client.setClientRole("host");
+                // Publish the local tracks
+                await client.publish([
+                    localTracks.videoTrack,
+                    localTracks.audioTrack,
+                ]);
+            });
+
+            stopBtn.addEventListener("click", () => {
+                // Stop streaming logic here
+                console.log("Stream stopped");
+                client.leave();
+                // Hide stop button and show start button
+                startBtn.style.display = "block";
+                stopBtn.style.display = "none";
+            });
+
+            // Reaction display area
+            const reactionDisplay = document.getElementById("reaction-display");
+            const videoStream = document.getElementById("video-stream");
+
+            // Simulate receiving reactions from the audience
+            function receiveReaction(reaction) {
+                // Update reaction counts
+                updateReactionDisplay(reaction);
+
+                // Show floating reaction
+                showFloatingReaction(reaction);
+            }
+
+            function updateReactionDisplay(reaction) {
+                let existingCount = document.querySelector(
+                    `.reaction-count[data-reaction="${reaction}"]`,
+                );
+                if (existingCount) {
+                    let countSpan = existingCount.querySelector(".count");
+                    countSpan.textContent = parseInt(countSpan.textContent) + 1;
+                }
+            }
+
+            function showFloatingReaction(reaction) {
+                // Create the floating reaction element
+                const reactionElem = document.createElement("div");
+                reactionElem.classList.add("reaction-float");
+                reactionElem.textContent = reaction;
+                reactionElem.style.left = Math.random() * 80 + 10 + "%"; // Random horizontal position
+
+                // Append to video stream
+                videoStream.appendChild(reactionElem);
+
+                // Remove the element after animation completes
+                reactionElem.addEventListener("animationend", () => {
+                    reactionElem.remove();
+                });
+            }
+
+            // For demonstration purposes, simulate reactions every few seconds
+            const reactions = ["👍", "❤️", "😂", "👏", "👎"];
+            setInterval(() => {
+                const randomReaction =
+                    reactions[Math.floor(Math.random() * reactions.length)];
+                receiveReaction(randomReaction);
+            }, 3000);
+
+            function getParameterByName(name, url = window.location.href) {
+                name = name.replace(/[\[\]]/g, "\\$&"); // Correct the regex for special characters
+                console.log(name);
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return "";
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+
+            // Chat toggle logic
+            const toggleChatBtn = document.getElementById("toggle-chat-btn");
+            const chat = document.getElementById("chat");
+
+            toggleChatBtn.addEventListener("click", () => {
+                if (chat.classList.contains("hidden")) {
+                    chat.classList.remove("hidden");
+                    toggleChatBtn.textContent = "Hide Chat";
+                } else {
+                    chat.classList.add("hidden");
+                    toggleChatBtn.textContent = "Show Chat";
+                }
+            });
+        </script>
+    </body>
+</html>
