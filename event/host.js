@@ -96,7 +96,7 @@ joinAC = async () => {
     },
     onCmdMessage: (message) => {
       console.log("Command message received:", message);
-      receiveReaction(message.ext[0]);
+      receiveReaction(message.ext[0], message.from);
     },
   });
 };
@@ -255,12 +255,12 @@ const reactionDisplay = document.getElementById("reaction-display");
 const videoStream = document.getElementById("video-stream");
 
 // Simulate receiving reactions from the audience
-function receiveReaction(reaction) {
+function receiveReaction(reaction, username = "UserName") {
   // Update reaction counts
   updateReactionDisplay(reaction);
 
   // Show floating reaction
-  showFloatingReaction(reaction);
+  showFloatingReaction(reaction, username);
 }
 
 function updateReactionDisplay(reaction) {
@@ -273,14 +273,27 @@ function updateReactionDisplay(reaction) {
   }
 }
 
-function showFloatingReaction(reaction) {
-  // Create the floating reaction element
+function showFloatingReaction(reaction, username = "UserName") {
+  // Create the floating reaction container
   const reactionElem = document.createElement("div");
   reactionElem.classList.add("reaction-float");
-  reactionElem.textContent = reaction;
   reactionElem.style.left = Math.random() * 80 + 10 + "%"; // Random horizontal position
 
+  // Create the emoji element
+  const emojiElem = document.createElement("span");
+  emojiElem.textContent = reaction; // Set the reaction emoji
+
+  // Create the username element
+  const usernameElem = document.createElement("span");
+  usernameElem.classList.add("reaction-username");
+  usernameElem.textContent = username; // Set the username text
+
+  // Append the emoji and username to the reaction container
+  reactionElem.appendChild(emojiElem);
+  reactionElem.appendChild(usernameElem);
+
   // Append to video stream
+  const videoStream = document.getElementById("video-stream");
   videoStream.appendChild(reactionElem);
 
   // Remove the element after animation completes
@@ -291,11 +304,6 @@ function showFloatingReaction(reaction) {
 
 // For demonstration purposes, simulate reactions every few seconds
 const reactions = ["👍", "❤️", "😂", "👏", "👎"];
-// setInterval(() => {
-//   const randomReaction =
-//     reactions[Math.floor(Math.random() * reactions.length)];
-//   receiveReaction(randomReaction);
-// }, 3000);
 
 function getParameterByName(name, url = window.location.href) {
   name = name.replace(/[\[\]]/g, "\\$&"); // Correct the regex for special characters

@@ -143,13 +143,29 @@ body {
   outline: none;
   background-color: #555;
 }
-/* --- Reaction Animations --- */
 .reaction-float {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center both emoji and username */
   font-size: 48px;
   animation: floatUp 2s ease-out forwards;
   pointer-events: none; /* Allows clicks to pass through */
   z-index: 11; /* Ensure floating reactions are above video */
+}
+
+.reaction-username {
+  font-size: 14px; /* Smaller font for username */
+  margin-top: 5px; /* Space between emoji and username */
+  color: white; /* Optional: change color of the username */
+  background-color: rgba(
+    0,
+    0,
+    0,
+    0.6
+  ); /* Optional: add a semi-transparent background */
+  border-radius: 5px;
+  padding: 5px;
 }
 @keyframes floatUp {
   0% {
@@ -159,7 +175,7 @@ body {
   100% {
     opacity: 0;
     font-size: 100px;
-    transform: translateY(-200px);
+    transform: translateY(-400px);
   }
 }
 /* --- Scrollbar Styling --- */
