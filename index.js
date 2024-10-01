@@ -19,7 +19,7 @@ const RtcTokenBuilder =
   require("./inc/token/src/RtcTokenBuilder2").RtcTokenBuilder;
 const Role = require("./inc/token/src/RtcTokenBuilder2").Role;
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Serve static files from the "event" directory
 app.use(express.json());
