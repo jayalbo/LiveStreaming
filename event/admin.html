@@ -166,7 +166,7 @@
         </div>
 
         <script>
-            // Array to store events (in place of a real database)
+            // Array to store events
             let events = [];
 
             // Get elements
@@ -174,18 +174,68 @@
             const addEventBtn = document.getElementById("add-event-btn");
             const eventList = document.getElementById("event-list");
 
+            // On page load, fetch the list of existing events
+            window.onload = function () {
+                fetchEvents(); // Query the backend for the list of existing events
+            };
+
             // Add Event button click handler
             addEventBtn.addEventListener("click", function () {
                 const eventName = eventNameInput.value.trim();
 
                 if (eventName) {
-                    events.push(eventName); // Add event to the array
-                    eventNameInput.value = ""; // Clear input
-                    renderEventList(); // Re-render the event list
+                    createEvent(eventName); // Send POST request to create event
                 } else {
                     alert("Please enter a valid event name.");
                 }
             });
+
+            // Function to send POST request to create a new event (chatroom)
+            function createEvent(eventName) {
+                fetch("/create-event", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ eventName: eventName }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.message === "Event created successfully") {
+                            events.push({
+                                ...data.chatroom.data,
+                                name: eventName,
+                            }); // Add the new event to the array with chatroom details
+                            renderEventList();
+                            eventNameInput.value = ""; // Clear input
+                        } else {
+                            alert("Failed to create event.");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error:", error);
+                        alert("An error occurred while creating the event.");
+                    });
+            }
+
+            // Fetch existing events from the server
+            function fetchEvents() {
+                fetch("/list-events", {
+                    method: "GET",
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.events && data.events.length > 0) {
+                            events = data.events; // Populate events array with data from the server
+                            renderEventList(); // Render the fetched events
+                        } else {
+                            console.log("No events found.");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching events:", error);
+                    });
+            }
 
             // Render the event list
             function renderEventList() {
@@ -199,13 +249,13 @@
 
                     const span = document.createElement("span");
                     span.className = "event-name";
-                    span.innerText = event;
+                    span.innerText = event.name;
 
                     const deleteBtn = document.createElement("button");
                     deleteBtn.className = "delete-btn";
                     deleteBtn.innerText = "Delete";
                     deleteBtn.addEventListener("click", function () {
-                        deleteEvent(index);
+                        deleteEvent(event.id, index); // Send the ID of the event to delete
                     });
 
                     eventInfoDiv.appendChild(span);
@@ -216,8 +266,8 @@
                     const eventUrlsDiv = document.createElement("div");
                     eventUrlsDiv.className = "event-urls";
 
-                    const hostUrl = `/event/host.html?event=${encodeURIComponent(event)}`;
-                    const audienceUrl = `/event/audience.html?event=${encodeURIComponent(event)}`;
+                    const hostUrl = `/event/host.html?event=${encodeURIComponent(event.id)}`;
+                    const audienceUrl = `/event/audience.html?event=${encodeURIComponent(event.id)}`;
 
                     const hostLink = document.createElement("a");
                     hostLink.href = hostUrl;
@@ -235,10 +285,23 @@
                 });
             }
 
-            // Delete an event by index
-            function deleteEvent(index) {
-                events.splice(index, 1); // Remove the event from the array
-                renderEventList(); // Re-render the event list
+            // Function to send DELETE request to remove a chatroom (event)
+            function deleteEvent(chatroomId, index) {
+                fetch(`/delete-event/${chatroomId}`, {
+                    method: "DELETE",
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (data.message) {
+                            events.splice(index, 1); // Remove the event from the array
+                            renderEventList(); // Re-render the event list
+                        } else {
+                            alert("Failed to delete event.");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error deleting event:", error);
+                    });
             }
 
             // Initial render

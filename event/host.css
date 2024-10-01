@@ -1,0 +1,243 @@
+body {
+  margin: 0;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  background-color: #1a1a1a;
+  color: #fff;
+  overflow: hidden; /* Prevents body scroll */
+}
+#container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+/* --- Video Stream --- */
+#video-stream {
+  flex: 3;
+  background-color: #000;
+  position: relative;
+  overflow: hidden;
+}
+#video-stream video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* --- Stream Controls --- */
+#controls {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 120px; /* Give space for the chat button */
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  width: calc(100% - 160px); /* Adjust width between buttons */
+}
+
+#event-name {
+  flex-grow: 1;
+  text-align: center;
+  padding: 10px 0;
+  background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent background */
+  color: #fff;
+  font-size: 12px;
+  border-radius: 5px;
+  margin: 0 10px;
+}
+#event-name span {
+  font-weight: bold;
+}
+#controls button {
+  float: left;
+  padding: 10px 20px;
+  margin-right: 10px;
+  cursor: pointer;
+  background-color: #444;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  transition: background-color 0.2s;
+}
+
+#controls button:hover {
+  background-color: #555;
+}
+#toggle-chat-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  padding: 10px 15px;
+  cursor: pointer;
+  background-color: #444;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  transition: background-color 0.2s;
+}
+#toggle-chat-btn:hover {
+  background-color: #555;
+}
+/* --- Reaction Display --- */
+#reaction-display {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 10px;
+  border-radius: 8px;
+  z-index: 10; /* Bring reactions above the video */
+}
+.reaction-count {
+  margin-right: 20px;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+}
+.reaction-count .count {
+  margin-left: 5px;
+  font-size: 24px;
+}
+/* --- Chat Panel --- */
+#chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #333;
+  background-color: #2a2a2a;
+  overflow: hidden;
+  transition: width 0.3s ease;
+}
+#chat.hidden {
+  display: none;
+}
+#chat-messages {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 10px;
+  word-wrap: break-word; /* Ensures long words break onto the next line */
+  overflow-wrap: break-word; /* Ensures long words break onto the next line */
+  white-space: pre-wrap; /* Preserves whitespace and breaks long lines */
+  color: #fff;
+}
+#chat-input {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-top: 1px solid #333;
+  background-color: #2a2a2a;
+}
+#chat-input input {
+  width: 100%;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 25px;
+  background-color: #444;
+  color: #fff;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+#chat-input input:focus {
+  outline: none;
+  background-color: #555;
+}
+/* --- Reaction Animations --- */
+.reaction-float {
+  position: absolute;
+  font-size: 48px;
+  animation: floatUp 2s ease-out forwards;
+  pointer-events: none; /* Allows clicks to pass through */
+  z-index: 11; /* Ensure floating reactions are above video */
+}
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    font-size: 100px;
+    transform: translateY(-200px);
+  }
+}
+/* --- Scrollbar Styling --- */
+::-webkit-scrollbar {
+  width: 8px;
+  background-color: #2a2a2a;
+}
+::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border-radius: 4px;
+}
+
+#start-btn {
+  display: none;
+}
+#stop-btn {
+  display: none;
+}
+#chat-input {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-top: 1px solid #333;
+  background-color: #2a2a2a;
+}
+
+#chat-input input {
+  width: 100%;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 25px;
+  background-color: #444;
+  color: #fff;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+#chat-input input:focus {
+  outline: none;
+  background-color: #555;
+}
+
+#send-btn {
+  margin-left: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #444;
+  border: none;
+  border-radius: 25px;
+  color: #fff;
+  transition: background-color 0.3s;
+}
+
+#send-btn:hover {
+  background-color: #555;
+}
+.message {
+  margin-bottom: 10px;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.5;
+}
+
+.label {
+  font-weight: bold; /* Bold the [Me] or [User] labels */
+  margin-right: 5px;
+}
+
+/* Style for host's messages */
+.host-message {
+  color: #00aaff; /* Light blue for host messages */
+  font-weight: 600; /* Slightly bold the host's messages */
+}
+
+/* Style for user's messages */
+.user-message {
+  color: #f0f0f0; /* Light gray for user messages */
+  font-weight: 400; /* Regular font weight for user messages */
+}
